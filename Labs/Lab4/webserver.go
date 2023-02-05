@@ -32,6 +32,7 @@ func (db database) list(w http.ResponseWriter, req *http.Request) {
 }
 
 func (db database) create(w http.ResponseWriter, req *http.Request) { // Add comment
+
 	item := req.URL.Query().Get("item")
 	price := req.URL.Query().Get("price")
 
@@ -43,15 +44,23 @@ func (db database) create(w http.ResponseWriter, req *http.Request) { // Add com
 
 	} else {
 
-		tempParse, _ := strconv.ParseFloat(price, 32)
+		tempParse, err := strconv.ParseFloat(price, 32)
 
-		tempFloat32 := float32(tempParse)
+		if err != nil {
 
-		convertedPrice := dollars(tempFloat32)
+			fmt.Fprintf(w, "Price is invalid")
 
-		db[item] = convertedPrice
+		} else {
 
-		fmt.Fprintf(w, "Entry created: %s: $%s\n", item, price)
+			tempFloat32 := float32(tempParse)
+
+			convertedPrice := dollars(tempFloat32)
+
+			db[item] = convertedPrice
+
+			fmt.Fprintf(w, "Entry created -> %s: $%s\n", item, price)
+
+		}
 
 	}
 
@@ -64,10 +73,30 @@ func (db database) read(w http.ResponseWriter, req *http.Request) { // Add comme
 }
 
 func (db database) update(w http.ResponseWriter, req *http.Request) { // Add comment
-	//item := req.URL.Query().Get("item")
-	for item, price := range db {
-		fmt.Fprintf(w, "%s: %s\n", item, price)
+
+	item := req.URL.Query().Get("item")
+	price := req.URL.Query().Get("price")
+
+	_, checkDatabase := db[item]
+
+	if checkDatabase == false {
+
+		fmt.Fprintf(w, "%s is not the in database", item)
+
+	} else {
+
+		tempParse, _ := strconv.ParseFloat(price, 32)
+
+		tempFloat32 := float32(tempParse)
+
+		convertedPrice := dollars(tempFloat32)
+
+		db[item] = convertedPrice
+
+		fmt.Fprintf(w, "Entry Updated -> %s: $%s\n", item, price)
+
 	}
+
 }
 
 func (db database) delete(w http.ResponseWriter, req *http.Request) { // Add comment
