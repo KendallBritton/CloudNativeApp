@@ -108,9 +108,22 @@ func (db database) update(w http.ResponseWriter, req *http.Request) { // Add com
 }
 
 func (db database) delete(w http.ResponseWriter, req *http.Request) { // Add comment
-	for item, price := range db {
-		fmt.Fprintf(w, "%s: %s\n", item, price)
+
+	item := req.URL.Query().Get("item")
+
+	_, checkDatabase := db[item]
+
+	if checkDatabase == false {
+
+		fmt.Fprintf(w, "%s is not the in database\n", item)
+
+	} else {
+
+		delete(db, item)
+		fmt.Fprintf(w, "%s has been deleted out of the database\n", item)
+
 	}
+
 }
 
 func (db database) price(w http.ResponseWriter, req *http.Request) {
