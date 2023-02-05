@@ -30,7 +30,7 @@ func (db database) list(w http.ResponseWriter, req *http.Request) {
 
 	var mu sync.RWMutex // Mutex variable
 
-	mu.RLock()         // Locks so only one client can update
+	mu.RLock()         // Locks so clients can only read
 	defer mu.RUnlock() // Will unlock at end of function
 
 	for item, price := range db {
@@ -80,7 +80,7 @@ func (db database) read(w http.ResponseWriter, req *http.Request) { // Read hand
 
 	var mu sync.RWMutex // Mutex variable
 
-	mu.RLock()         // Locks so only one client can update
+	mu.RLock()         // Locks so clients can only read
 	defer mu.RUnlock() // Will unlock at end of function
 
 	for item, price := range db {
@@ -133,9 +133,9 @@ func (db database) delete(w http.ResponseWriter, req *http.Request) { // Delete 
 	mu.Lock()         // Locks so only one client can update
 	defer mu.Unlock() // Will unlock at end of function
 
-	item := req.URL.Query().Get("item")		// Get item from URL
+	item := req.URL.Query().Get("item") // Get item from URL
 
-	_, checkDatabase := db[item]	// Check database for item
+	_, checkDatabase := db[item] // Check database for item
 
 	if checkDatabase == false {
 
@@ -154,7 +154,7 @@ func (db database) price(w http.ResponseWriter, req *http.Request) {
 
 	var mu sync.RWMutex // Mutex variable
 
-	mu.RLock()         // Locks so only one client can update
+	mu.RLock()         // Locks so clients can only read
 	defer mu.RUnlock() // Will unlock at end of function
 
 	item := req.URL.Query().Get("item")
