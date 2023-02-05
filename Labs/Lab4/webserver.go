@@ -35,15 +35,25 @@ func (db database) create(w http.ResponseWriter, req *http.Request) { // Add com
 	item := req.URL.Query().Get("item")
 	price := req.URL.Query().Get("price")
 
-	tempParse, _ := strconv.ParseFloat(price, 32)
+	_, checkDatabase := db[item]
 
-	tempFloat32 := float32(tempParse)
+	if checkDatabase == true {
 
-	convertedPrice := dollars(tempFloat32)
+		fmt.Fprintf(w, "%s is already created in database", item)
 
-	db[item] = convertedPrice
+	} else {
 
-	fmt.Fprintf(w, "The item %s was created in the database at the price $%s\n", item, price)
+		tempParse, _ := strconv.ParseFloat(price, 32)
+
+		tempFloat32 := float32(tempParse)
+
+		convertedPrice := dollars(tempFloat32)
+
+		db[item] = convertedPrice
+
+		fmt.Fprintf(w, "Entry created: %s: $%s\n", item, price)
+
+	}
 
 }
 
