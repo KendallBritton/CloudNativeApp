@@ -40,7 +40,7 @@ func (db database) create(w http.ResponseWriter, req *http.Request) { // Add com
 
 	if checkDatabase == true {
 
-		fmt.Fprintf(w, "%s is already created in database", item)
+		fmt.Fprintf(w, "%s is already created in database\n", item)
 
 	} else {
 
@@ -48,7 +48,7 @@ func (db database) create(w http.ResponseWriter, req *http.Request) { // Add com
 
 		if err != nil {
 
-			fmt.Fprintf(w, "Price is invalid")
+			fmt.Fprintf(w, "Price is invalid\n")
 
 		} else {
 
@@ -81,19 +81,27 @@ func (db database) update(w http.ResponseWriter, req *http.Request) { // Add com
 
 	if checkDatabase == false {
 
-		fmt.Fprintf(w, "%s is not the in database", item)
+		fmt.Fprintf(w, "%s is not the in database\n", item)
 
 	} else {
 
-		tempParse, _ := strconv.ParseFloat(price, 32)
+		tempParse, err := strconv.ParseFloat(price, 32)
 
-		tempFloat32 := float32(tempParse)
+		if err != nil {
 
-		convertedPrice := dollars(tempFloat32)
+			fmt.Fprintf(w, "Price is invalid\n")
 
-		db[item] = convertedPrice
+		} else {
 
-		fmt.Fprintf(w, "Entry Updated -> %s: $%s\n", item, price)
+			tempFloat32 := float32(tempParse)
+
+			convertedPrice := dollars(tempFloat32)
+
+			db[item] = convertedPrice
+
+			fmt.Fprintf(w, "Entry Updated -> %s: $%s\n", item, price)
+
+		}
 
 	}
 
