@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"sync"
 )
 
 func main() {
@@ -25,13 +26,22 @@ func (d dollars) String() string { return fmt.Sprintf("$%.2f", d) }
 
 type database map[string]dollars
 
+var mu sync.RWMutex
+
 func (db database) list(w http.ResponseWriter, req *http.Request) {
+
+	mu.RLock()
+	mu.RUnlock()
+
 	for item, price := range db {
 		fmt.Fprintf(w, "%s: %s\n", item, price)
 	}
 }
 
 func (db database) create(w http.ResponseWriter, req *http.Request) { // Add comment
+
+	mu.Lock()
+	defer mu.Unlock()
 
 	item := req.URL.Query().Get("item")
 	price := req.URL.Query().Get("price")
@@ -67,12 +77,19 @@ func (db database) create(w http.ResponseWriter, req *http.Request) { // Add com
 }
 
 func (db database) read(w http.ResponseWriter, req *http.Request) { // Add comment
+
+	mu.RLock()
+	mu.RUnlock()
+
 	for item, price := range db {
 		fmt.Fprintf(w, "%s: %s\n", item, price)
 	}
 }
 
 func (db database) update(w http.ResponseWriter, req *http.Request) { // Add comment
+
+	mu.Lock()
+	defer mu.Unlock()
 
 	item := req.URL.Query().Get("item")
 	price := req.URL.Query().Get("price")
@@ -109,6 +126,9 @@ func (db database) update(w http.ResponseWriter, req *http.Request) { // Add com
 
 func (db database) delete(w http.ResponseWriter, req *http.Request) { // Add comment
 
+	mu.Lock()
+	defer mu.Unlock()
+
 	item := req.URL.Query().Get("item")
 
 	_, checkDatabase := db[item]
@@ -127,6 +147,10 @@ func (db database) delete(w http.ResponseWriter, req *http.Request) { // Add com
 }
 
 func (db database) price(w http.ResponseWriter, req *http.Request) {
+
+	mu.RLock()
+	mu.RUnlock()
+
 	item := req.URL.Query().Get("item")
 	if price, ok := db[item]; ok {
 		fmt.Fprintf(w, "%s\n", price)
