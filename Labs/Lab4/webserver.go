@@ -13,10 +13,10 @@ func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/list", db.list)
 	mux.HandleFunc("/price", db.price)
-	mux.HandleFunc("/create", db.create) // Add comment
-	mux.HandleFunc("/read", db.read)     // Add comment
-	mux.HandleFunc("/update", db.update) // Add comment
-	mux.HandleFunc("/delete", db.delete) // Add comment
+	mux.HandleFunc("/create", db.create) // Handler function to handle a user create
+	mux.HandleFunc("/read", db.read)     // Handler function to handle a user read
+	mux.HandleFunc("/update", db.update) // Handler function to handle a user update
+	mux.HandleFunc("/delete", db.delete) // Handler function to handle a user delete
 	log.Fatal(http.ListenAndServe("localhost:8000", mux))
 }
 
@@ -26,27 +26,29 @@ func (d dollars) String() string { return fmt.Sprintf("$%.2f", d) }
 
 type database map[string]dollars
 
-var mu sync.RWMutex
-
 func (db database) list(w http.ResponseWriter, req *http.Request) {
 
-	mu.RLock()
-	mu.RUnlock()
+	var mu sync.RWMutex // Mutex variable
+
+	mu.RLock()         // Locks so only one client can update
+	defer mu.RUnlock() // Will unlock at end of function
 
 	for item, price := range db {
 		fmt.Fprintf(w, "%s: %s\n", item, price)
 	}
 }
 
-func (db database) create(w http.ResponseWriter, req *http.Request) { // Add comment
+func (db database) create(w http.ResponseWriter, req *http.Request) { // Create handler function
 
-	mu.Lock()
-	defer mu.Unlock()
+	var mu sync.RWMutex // Mutex variable
 
-	item := req.URL.Query().Get("item")
-	price := req.URL.Query().Get("price")
+	mu.Lock()         // Locks so only one client can update
+	defer mu.Unlock() // Will unlock at end of function
 
-	_, checkDatabase := db[item]
+	item := req.URL.Query().Get("item")   // Item is assigned from URL
+	price := req.URL.Query().Get("price") // Price is assigned from URL
+
+	_, checkDatabase := db[item] // Checks database for item
 
 	if checkDatabase == true {
 
@@ -54,7 +56,7 @@ func (db database) create(w http.ResponseWriter, req *http.Request) { // Add com
 
 	} else {
 
-		tempParse, err := strconv.ParseFloat(price, 32)
+		tempParse, err := strconv.ParseFloat(price, 32) // Parses price from URL
 
 		if err != nil {
 
@@ -62,13 +64,11 @@ func (db database) create(w http.ResponseWriter, req *http.Request) { // Add com
 
 		} else {
 
-			tempFloat32 := float32(tempParse)
+			tempFloat32 := float32(tempParse) // Converts type from float64 to float32
 
-			convertedPrice := dollars(tempFloat32)
+			db[item] = dollars(tempFloat32) // Assigns price to map
 
-			db[item] = convertedPrice
-
-			fmt.Fprintf(w, "Entry created -> %s: $%s\n", item, price)
+			fmt.Fprintf(w, "Entry created -> %s: $%s\n", item, price) // Output confirmation statement
 
 		}
 
@@ -76,33 +76,37 @@ func (db database) create(w http.ResponseWriter, req *http.Request) { // Add com
 
 }
 
-func (db database) read(w http.ResponseWriter, req *http.Request) { // Add comment
+func (db database) read(w http.ResponseWriter, req *http.Request) { // Read handler function
 
-	mu.RLock()
-	mu.RUnlock()
+	var mu sync.RWMutex // Mutex variable
+
+	mu.RLock()         // Locks so only one client can update
+	defer mu.RUnlock() // Will unlock at end of function
 
 	for item, price := range db {
-		fmt.Fprintf(w, "%s: %s\n", item, price)
+		fmt.Fprintf(w, "%s: %s\n", item, price) // Prints map values
 	}
 }
 
-func (db database) update(w http.ResponseWriter, req *http.Request) { // Add comment
+func (db database) update(w http.ResponseWriter, req *http.Request) { // Update handler function
 
-	mu.Lock()
-	defer mu.Unlock()
+	var mu sync.RWMutex // Mutex variable
 
-	item := req.URL.Query().Get("item")
-	price := req.URL.Query().Get("price")
+	mu.Lock()         // Locks so only one client can update
+	defer mu.Unlock() // Will unlock at end of function
 
-	_, checkDatabase := db[item]
+	item := req.URL.Query().Get("item")   // Item assigned from URL
+	price := req.URL.Query().Get("price") // Price assigned from URL
+
+	_, checkDatabase := db[item] // Checks database for item
 
 	if checkDatabase == false {
 
-		fmt.Fprintf(w, "%s is not the in database\n", item)
+		fmt.Fprintf(w, "%s is not in the database\n", item)
 
 	} else {
 
-		tempParse, err := strconv.ParseFloat(price, 32)
+		tempParse, err := strconv.ParseFloat(price, 32) // Parse price value out of URL
 
 		if err != nil {
 
@@ -110,13 +114,11 @@ func (db database) update(w http.ResponseWriter, req *http.Request) { // Add com
 
 		} else {
 
-			tempFloat32 := float32(tempParse)
+			tempFloat32 := float32(tempParse) // Convert float64 to float32
 
-			convertedPrice := dollars(tempFloat32)
+			db[item] = dollars(tempFloat32) // Assign value to temp
 
-			db[item] = convertedPrice
-
-			fmt.Fprintf(w, "Entry Updated -> %s: $%s\n", item, price)
+			fmt.Fprintf(w, "Entry Updated -> %s: $%s\n", item, price) // Confirmation statement
 
 		}
 
@@ -124,14 +126,16 @@ func (db database) update(w http.ResponseWriter, req *http.Request) { // Add com
 
 }
 
-func (db database) delete(w http.ResponseWriter, req *http.Request) { // Add comment
+func (db database) delete(w http.ResponseWriter, req *http.Request) { // Delete handler function
 
-	mu.Lock()
-	defer mu.Unlock()
+	var mu sync.RWMutex // Mutex variable
 
-	item := req.URL.Query().Get("item")
+	mu.Lock()         // Locks so only one client can update
+	defer mu.Unlock() // Will unlock at end of function
 
-	_, checkDatabase := db[item]
+	item := req.URL.Query().Get("item")		// Get item from URL
+
+	_, checkDatabase := db[item]	// Check database for item
 
 	if checkDatabase == false {
 
@@ -148,8 +152,10 @@ func (db database) delete(w http.ResponseWriter, req *http.Request) { // Add com
 
 func (db database) price(w http.ResponseWriter, req *http.Request) {
 
-	mu.RLock()
-	mu.RUnlock()
+	var mu sync.RWMutex // Mutex variable
+
+	mu.RLock()         // Locks so only one client can update
+	defer mu.RUnlock() // Will unlock at end of function
 
 	item := req.URL.Query().Get("item")
 	if price, ok := db[item]; ok {
