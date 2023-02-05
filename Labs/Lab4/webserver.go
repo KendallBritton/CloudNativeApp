@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 )
 
 func main() {
@@ -11,6 +12,10 @@ func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/list", db.list)
 	mux.HandleFunc("/price", db.price)
+	mux.HandleFunc("/create", db.create) // Add comment
+	mux.HandleFunc("/read", db.read)     // Add comment
+	mux.HandleFunc("/update", db.update) // Add comment
+	mux.HandleFunc("/delete", db.delete) // Add comment
 	log.Fatal(http.ListenAndServe("localhost:8000", mux))
 }
 
@@ -21,6 +26,41 @@ func (d dollars) String() string { return fmt.Sprintf("$%.2f", d) }
 type database map[string]dollars
 
 func (db database) list(w http.ResponseWriter, req *http.Request) {
+	for item, price := range db {
+		fmt.Fprintf(w, "%s: %s\n", item, price)
+	}
+}
+
+func (db database) create(w http.ResponseWriter, req *http.Request) { // Add comment
+	item := req.URL.Query().Get("item")
+	price := req.URL.Query().Get("price")
+
+	tempParse, _ := strconv.ParseFloat(price, 32)
+
+	tempFloat32 := float32(tempParse)
+
+	convertedPrice := dollars(tempFloat32)
+
+	db[item] = convertedPrice
+
+	fmt.Fprintf(w, "The item %s was created in the database at the price $%s\n", item, price)
+
+}
+
+func (db database) read(w http.ResponseWriter, req *http.Request) { // Add comment
+	for item, price := range db {
+		fmt.Fprintf(w, "%s: %s\n", item, price)
+	}
+}
+
+func (db database) update(w http.ResponseWriter, req *http.Request) { // Add comment
+	//item := req.URL.Query().Get("item")
+	for item, price := range db {
+		fmt.Fprintf(w, "%s: %s\n", item, price)
+	}
+}
+
+func (db database) delete(w http.ResponseWriter, req *http.Request) { // Add comment
 	for item, price := range db {
 		fmt.Fprintf(w, "%s: %s\n", item, price)
 	}
