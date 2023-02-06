@@ -21,6 +21,7 @@ func main() {
 }
 
 type dollars float32
+
 var mu sync.RWMutex // Mutex variable
 
 func (d dollars) String() string { return fmt.Sprintf("$%.2f", d) }
@@ -28,8 +29,6 @@ func (d dollars) String() string { return fmt.Sprintf("$%.2f", d) }
 type database map[string]dollars
 
 func (db database) list(w http.ResponseWriter, req *http.Request) {
-
-	var mu sync.RWMutex // Mutex variable
 
 	mu.RLock()         // Locks so clients can only read
 	defer mu.RUnlock() // Will unlock at end of function
@@ -40,7 +39,6 @@ func (db database) list(w http.ResponseWriter, req *http.Request) {
 }
 
 func (db database) create(w http.ResponseWriter, req *http.Request) { // Create handler function
-
 
 	mu.Lock()         // Locks so only one client can update
 	defer mu.Unlock() // Will unlock at end of function
@@ -124,7 +122,6 @@ func (db database) update(w http.ResponseWriter, req *http.Request) { // Update 
 
 func (db database) delete(w http.ResponseWriter, req *http.Request) { // Delete handler function
 
-
 	mu.Lock()         // Locks so only one client can update
 	defer mu.Unlock() // Will unlock at end of function
 
@@ -146,8 +143,6 @@ func (db database) delete(w http.ResponseWriter, req *http.Request) { // Delete 
 }
 
 func (db database) price(w http.ResponseWriter, req *http.Request) {
-
-	var mu sync.RWMutex // Mutex variable
 
 	mu.RLock()         // Locks so clients can only read
 	defer mu.RUnlock() // Will unlock at end of function
