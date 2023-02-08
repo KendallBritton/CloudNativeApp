@@ -1,3 +1,5 @@
+#! /bin/sh
+
 curl "http://localhost:8000/list" &
 
 curl "http://localhost:8000/create?item=TV&price=999.99" &
