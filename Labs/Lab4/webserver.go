@@ -10,6 +10,7 @@ import (
 
 func main() {
 	var db database
+	db.storSys = make(map[string]dollars)
 	db.storSys["shoes"] = 50
 	db.storSys["socks"] = 5
 	mux := http.NewServeMux()
@@ -27,10 +28,8 @@ type dollars float32
 func (d dollars) String() string { return fmt.Sprintf("$%.2f", d) }
 
 type database struct {
-
-	mu sync.RWMutex // Mutex variable
+	mu      sync.RWMutex // Mutex variable
 	storSys map[string]dollars
-
 }
 
 func (db *database) list(w http.ResponseWriter, req *http.Request) {
