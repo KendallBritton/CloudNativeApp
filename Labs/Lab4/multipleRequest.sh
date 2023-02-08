@@ -24,4 +24,4 @@ curl "http://localhost:8000/price?item=Pie" &
 
 curl "http://localhost:8000/price?item=Soundbar" &
 
-curl "http://localhost:8000/delete?item=shoes" &
+curl "http://localhost:8000/delete?item=Pie" 
