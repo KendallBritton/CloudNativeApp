@@ -2,6 +2,7 @@ module labs
 
 go 1.19
 
+
 require (
 	github.com/golang/protobuf v1.5.2 // indirect
 	golang.org/x/net v0.6.0 // indirect
