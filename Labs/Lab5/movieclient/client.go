@@ -66,7 +66,7 @@ func main() {
 	}
 	log.Printf("Movie Info for %s %d %s %v", testTitle, testOutput.GetYear(), testOutput.GetDirector(), testOutput.GetCast())
 	testTitle2 := "Fast and Furious"
-	testOutput2, err := c.GetMovieInfo(ctx, &movieapi.MovieRequest{Title: testTitle})
+	testOutput2, err := c.GetMovieInfo(ctx, &movieapi.MovieRequest{Title: testTitle2})
 	if err != nil {
 		log.Fatalf("could not get movie info: %v", err)
 	}
