@@ -3,12 +3,14 @@ package main
 
 import (
 	"context"
+	"errors"
 	"log"
 	"net"
 	"strconv"
 	"strings"
 
 	"labs/Lab5/movieapi"
+
 	"google.golang.org/grpc"
 )
 
@@ -23,6 +25,47 @@ type server struct {
 
 // Map representing a database
 var moviedb = map[string][]string{"Pulp fiction": []string{"1994", "Quentin Tarantino", "John Travolta,Samuel Jackson,Uma Thurman,Bruce Willis"}}
+
+// Add comment
+func (s *server) SetMovieInfo(ctx context.Context, in *movieapi.MovieData) (*movieapi.Status, error) {
+	title := in.Title
+	year := in.Year
+	cast := in.Cast
+	director := in.Director
+	status := &movieapi.Status{}
+
+	if title == "" {
+		return status, errors.New("Error in saving title")
+	} else {
+		status.Code = "Passed Successfully"
+	}
+
+	if director == "" {
+		return status, errors.New("Error in saving director")
+	} else {
+		status.Code = "Passed Successfully"
+	}
+
+	for i := range cast {
+
+		if cast[i] == "" {
+			return status, errors.New("Error in saving cast")
+		} else {
+			status.Code = "Passed Successfully"
+		}
+
+	}
+
+	stringYear := strconv.Itoa(int(year))
+
+	temp := []string{stringYear, director}
+
+	moviedb[title] = append(temp, cast...)
+
+	log.Printf("Movie Data Saved: %v", title)
+
+	return status, nil
+}
 
 // GetMovieInfo implements movieapi.MovieInfoServer
 func (s *server) GetMovieInfo(ctx context.Context, in *movieapi.MovieRequest) (*movieapi.MovieReply, error) {
