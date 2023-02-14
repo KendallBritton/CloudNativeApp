@@ -37,13 +37,19 @@ func (s *server) SetMovieInfo(ctx context.Context, in *movieapi.MovieData) (*mov
 	if title == "" {
 		return status, errors.New("Error in saving title")
 	} else {
-		status.Code = "Passed Successfully"
+		status.Code = "Data Submitted Successfully"
 	}
 
 	if director == "" {
 		return status, errors.New("Error in saving director")
 	} else {
-		status.Code = "Passed Successfully"
+		status.Code = "Data Submitted Successfully"
+	}
+
+	if year == 0 {
+		return status, errors.New("Error in saving year")
+	} else {
+		status.Code = "Data Submitted Successfully"
 	}
 
 	for i := range cast {
@@ -51,7 +57,7 @@ func (s *server) SetMovieInfo(ctx context.Context, in *movieapi.MovieData) (*mov
 		if cast[i] == "" {
 			return status, errors.New("Error in saving cast")
 		} else {
-			status.Code = "Passed Successfully"
+			status.Code = "Data Submitted Successfully"
 		}
 
 	}
@@ -72,8 +78,8 @@ func (s *server) GetMovieInfo(ctx context.Context, in *movieapi.MovieRequest) (*
 	title := in.GetTitle()
 	log.Printf("Received: %v", title)
 	reply := &movieapi.MovieReply{}
-	if val, ok := moviedb[title]; !ok { // Title not present in database
-		return reply, nil
+	if val, ok := moviedb[title]; ok == false { // Title not present in database
+		return reply, errors.New("Movie Info Not Found")
 	} else {
 		if year, err := strconv.Atoi(val[0]); err != nil {
 			reply.Year = -1

@@ -52,23 +52,30 @@ func main() {
 	r, err := c.GetMovieInfo(ctx, &movieapi.MovieRequest{Title: title})
 	if err != nil {
 		log.Fatalf("could not get movie info: %v", err)
+	} else {
+		log.Printf("Movie Info for %s %d %s %v", title, r.GetYear(), r.GetDirector(), r.GetCast())
 	}
-	log.Printf("Movie Info for %s %d %s %v", title, r.GetYear(), r.GetDirector(), r.GetCast())
+
 	test, err := c.SetMovieInfo(ctx, &movieapi.MovieData{Title: newMovie.title, Year: newMovie.year, Director: newMovie.director, Cast: newMovie.cast})
 	if err != nil {
 		log.Fatalf("could not get movie info: %v", err)
 	}
 	log.Printf("%v", test.Code)
+
 	testTitle := "The Dark Knight"
 	testOutput, err := c.GetMovieInfo(ctx, &movieapi.MovieRequest{Title: testTitle})
 	if err != nil {
 		log.Fatalf("could not get movie info: %v", err)
+	} else {
+		log.Printf("Movie Info for %s %d %s %v", testTitle, testOutput.GetYear(), testOutput.GetDirector(), testOutput.GetCast())
 	}
-	log.Printf("Movie Info for %s %d %s %v", testTitle, testOutput.GetYear(), testOutput.GetDirector(), testOutput.GetCast())
-	testTitle2 := "Fast and Furious"
-	testOutput2, err := c.GetMovieInfo(ctx, &movieapi.MovieRequest{Title: testTitle2})
+
+	testTitle = "Fast and Furious"
+	testOutput, err = c.GetMovieInfo(ctx, &movieapi.MovieRequest{Title: testTitle})
 	if err != nil {
 		log.Fatalf("could not get movie info: %v", err)
+	} else {
+		log.Printf("Movie Info for %s %d %s %v", testTitle, testOutput.GetYear(), testOutput.GetDirector(), testOutput.GetCast())
 	}
-	log.Printf("Movie Info for %s %d %s %v", testTitle2, testOutput2.GetYear(), testOutput2.GetDirector(), testOutput2.GetCast())
+
 }
