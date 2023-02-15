@@ -26,14 +26,17 @@ type server struct {
 // Map representing a database
 var moviedb = map[string][]string{"Pulp fiction": []string{"1994", "Quentin Tarantino", "John Travolta,Samuel Jackson,Uma Thurman,Bruce Willis"}}
 
-// Add comment
+// SetMovieInfo implements movieapi.SetMovieInfo
 func (s *server) SetMovieInfo(ctx context.Context, in *movieapi.MovieData) (*movieapi.Status, error) {
+
+	// Variables to take in various inputs
 	title := in.Title
 	year := in.Year
 	cast := in.Cast
 	director := in.Director
 	status := &movieapi.Status{}
 
+	// Series of error checking
 	if title == "" {
 		return status, errors.New("Error in saving title")
 	} else {
@@ -62,13 +65,13 @@ func (s *server) SetMovieInfo(ctx context.Context, in *movieapi.MovieData) (*mov
 
 	}
 
-	stringYear := strconv.Itoa(int(year))
+	stringYear := strconv.Itoa(int(year)) // Coverts Int32 to Int for conversion
 
-	temp := []string{stringYear, director}
+	temp := []string{stringYear, director} // Makes slice to hold temp before putting in into map
 
-	moviedb[title] = append(temp, cast...)
+	moviedb[title] = append(temp, cast...) // Append casts to the rest of data
 
-	log.Printf("Movie Data Saved: %v", title)
+	log.Printf("Movie Data Saved: %v", title) // Output movie title upon successful completion
 
 	return status, nil
 }

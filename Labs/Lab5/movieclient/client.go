@@ -17,6 +17,7 @@ const (
 	defaultTitle = "Pulp fiction"
 )
 
+// MovieData structure to hold contents of movie
 type MovieData struct {
 	title    string
 	year     int32
@@ -26,8 +27,9 @@ type MovieData struct {
 
 func main() {
 
-	var newMovie MovieData
+	var newMovie MovieData // New movie variable
 
+	// Assigns movie contents
 	newMovie.title = "The Dark Knight"
 	newMovie.director = "Christopher Nolan"
 	newMovie.year = 2008
@@ -56,21 +58,23 @@ func main() {
 		log.Printf("Movie Info for %s %d %s %v", title, r.GetYear(), r.GetDirector(), r.GetCast())
 	}
 
+	// Tests SetMovieInfo function
 	test, err := c.SetMovieInfo(ctx, &movieapi.MovieData{Title: newMovie.title, Year: newMovie.year, Director: newMovie.director, Cast: newMovie.cast})
 	if err != nil {
 		log.Fatalf("could not get movie info: %v", err)
 	}
-	log.Printf("%v", test.Code)
+	log.Printf("%v", test.Code) // Output status results
 
-	testTitle := "The Dark Knight"
-	testOutput, err := c.GetMovieInfo(ctx, &movieapi.MovieRequest{Title: testTitle})
+	// Searches for new movie which was set into database
+	testOutput, err := c.GetMovieInfo(ctx, &movieapi.MovieRequest{Title: newMovie.title})
 	if err != nil {
 		log.Fatalf("could not get movie info: %v", err)
 	} else {
-		log.Printf("Movie Info for %s %d %s %v", testTitle, testOutput.GetYear(), testOutput.GetDirector(), testOutput.GetCast())
+		log.Printf("Movie Info for %s %d %s %v", newMovie.title, testOutput.GetYear(), testOutput.GetDirector(), testOutput.GetCast())
 	}
 
-	testTitle = "Fast and Furious"
+	// Searches for a movie not in database
+	testTitle := "Fast and Furious"
 	testOutput, err = c.GetMovieInfo(ctx, &movieapi.MovieRequest{Title: testTitle})
 	if err != nil {
 		log.Fatalf("could not get movie info: %v", err)
