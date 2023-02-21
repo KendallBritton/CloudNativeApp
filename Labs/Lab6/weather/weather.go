@@ -19,6 +19,10 @@ func (t Temperature) Fahrenheit() float64 {
 type Conditions struct {
 	Summary     string
 	Temperature Temperature
+	Pressure    int     // Added new pressure condition
+	Humidity    int     // Added new humidity condition
+	WindSpeed   float32 // Added new windspeed condition
+
 }
 
 type OWMResponse struct {
@@ -26,7 +30,12 @@ type OWMResponse struct {
 		Main string
 	}
 	Main struct {
-		Temp Temperature
+		Temp     Temperature
+		Pressure int // Adds map association to obtain pressure
+		Humidity int // Adds map association to obtain humidity
+	}
+	Wind struct {
+		Speed float32 // Adds map association to obtain wind speed
 	}
 }
 
@@ -88,6 +97,9 @@ func ParseResponse(data []byte) (Conditions, error) {
 	conditions := Conditions{
 		Summary:     resp.Weather[0].Main,
 		Temperature: resp.Main.Temp,
+		Pressure:    resp.Main.Pressure, // Set up parsing condition for pressure
+		Humidity:    resp.Main.Humidity, // Set up parsing condition for humidity
+		WindSpeed:   resp.Wind.Speed,    // Set up parsing condition for wind speed
 	}
 	return conditions, nil
 }
@@ -117,6 +129,8 @@ func RunCLI() {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
-	fmt.Printf("%s %.1fº\n", conditions.Summary, conditions.Temperature.Fahrenheit())
 
+	// Added new print statements for new conditions (pressure, humidity, and wind speed)
+	fmt.Printf("Summary: %s Temperature: %.1fº Pressure: %v Humidity: %v Wind Speed: %v\n", conditions.Summary, conditions.Temperature.Fahrenheit(),
+		conditions.Pressure, conditions.Humidity, conditions.WindSpeed)
 }
