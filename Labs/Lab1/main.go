@@ -2,8 +2,9 @@ package main
 
 import (
 	"fmt"
-	"labs/Lab1/myadder"
-	"labs/Lab1/textproc"
+
+	"github.com/KendallBritton/CloudNativeApp/Labs/Lab1/myadder"
+	"github.com/KendallBritton/CloudNativeApp/Labs/Lab1/textproc"
 )
 
 func main() {

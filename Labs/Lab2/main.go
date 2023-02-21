@@ -2,7 +2,8 @@ package main
 
 import (
 	"fmt"
-	"labs/Lab2/lru"
+
+	"github.com/KendallBritton/CloudNativeApp/Labs/Lab2/lru"
 )
 
 func main() {
