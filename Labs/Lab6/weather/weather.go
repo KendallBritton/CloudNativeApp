@@ -130,7 +130,7 @@ func RunCLI() {
 		os.Exit(1)
 	}
 
-	// Added new print statements for new conditions (pressure, humidity, and wind speed)
+	// Added new print statements for new conditions (pressure, humidity, and wind speed
 	fmt.Printf("Summary: %s Temperature: %.1fº Pressure: %v Humidity: %v Wind Speed: %v\n", conditions.Summary, conditions.Temperature.Fahrenheit(),
 		conditions.Pressure, conditions.Humidity, conditions.WindSpeed)
 }
