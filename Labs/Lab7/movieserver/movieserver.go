@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/KendallBritton/CloudNativeApp/Labs/Lab7/movieserver/movieapi"
+	"github.com/KendallBritton/CloudNativeApp/Labs/Lab5/movieapi"
 
 	"google.golang.org/grpc"
 )
