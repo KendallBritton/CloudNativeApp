@@ -5,11 +5,11 @@ WORKDIR /src/
 COPY movieserver.go /src/
 COPY movieapi /src/
 
-COPY go.mod ./
-COPY go.sum ./
-RUN go mod download
+#COPY ../../../go.mod /src/
+#COPY ../../../go.sum /src/
+#RUN go mod download
 
-COPY *.go ./
+#COPY *.go ./
 
 RUN CGO_ENABLED=0 go build -o /bin/movieserver
 
