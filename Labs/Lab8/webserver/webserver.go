@@ -1,18 +1,49 @@
-package webserver
+package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net/http"
 	"strconv"
 	"sync"
+
+	"time"
+
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
+
+const (
+	mongodbEndpoint = "mongodb://172.17.0.2:27017" // Find this from the Mongo container
+)
+
+type ProductInfo struct {
+	ID           primitive.ObjectID `bson:"_id"`
+	ProductName  string             `bson:"productName"`
+	ProductPrice string             `bson:"productPrice"`
+	Tags         []string           `bson:"tags"`
+	Comments     uint64             `bson:"comments"`
+	CreatedAt    time.Time          `bson:"created_at"`
+	UpdatedAt    time.Time          `bson:"updated_at"`
+}
 
 func main() {
 	var db database
-	db.storSys = make(map[string]dollars)
-	db.storSys["shoes"] = 50
-	db.storSys["socks"] = 5
+	var err error
+
+	db.client, err = mongo.NewClient(
+		options.Client().ApplyURI(mongodbEndpoint),
+	)
+	checkError(err)
+
+	db.ctx = context.Background()
+	err = db.client.Connect(db.ctx)
+
+	db.col = db.client.Database("blog").Collection("posts")
+
 	mux := http.NewServeMux()
 	mux.HandleFunc("/list", db.list)
 	mux.HandleFunc("/price", db.price)
@@ -23,13 +54,11 @@ func main() {
 	log.Fatal(http.ListenAndServe(":8000", mux))
 }
 
-type dollars float32
-
-func (d dollars) String() string { return fmt.Sprintf("$%.2f", d) }
-
 type database struct {
-	mu      sync.RWMutex // Mutex variable
-	storSys map[string]dollars
+	mu     sync.RWMutex // Mutex variable
+	ctx    context.Context
+	client *mongo.Client
+	col    *mongo.Collection
 }
 
 func (db *database) list(w http.ResponseWriter, req *http.Request) {
@@ -37,9 +66,29 @@ func (db *database) list(w http.ResponseWriter, req *http.Request) {
 	db.mu.RLock()         // Locks so clients can only read
 	defer db.mu.RUnlock() // Will unlock at end of function
 
-	for item, price := range db.storSys {
-		fmt.Fprintf(w, "%s: %s\n", item, price)
+	var product []ProductInfo
+
+	// filter posts tagged as mongodb
+	filter := bson.M{"tags": bson.M{"$elemMatch": bson.M{"$eq": "mongodb"}}}
+
+	item, err := db.col.Find(db.ctx, filter)
+
+	if err != nil {
+		log.Fatal(err)
 	}
+
+	if err = item.All(db.ctx, &product); err != nil {
+		log.Fatal(err)
+	}
+
+	for _, list := range product {
+		format := fmt.Sprintf("Item: %s\nPrice: %s\nTags: %s\nComments: %v\n Created at: %s\n Updated at: %s\n",
+			list.ProductName, list.ProductPrice, list.Tags, list.Comments, list.CreatedAt, list.UpdatedAt)
+		fmt.Fprintf(w, "%s\n", format)
+	}
+
+	log.Printf("Items: %+v\n", product)
+
 }
 
 func (db *database) create(w http.ResponseWriter, req *http.Request) { // Create handler function
@@ -50,7 +99,18 @@ func (db *database) create(w http.ResponseWriter, req *http.Request) { // Create
 	item := req.URL.Query().Get("item")   // Item is assigned from URL
 	price := req.URL.Query().Get("price") // Price is assigned from URL
 
-	_, checkDatabase := db.storSys[item] // Checks database for item
+	// filter posts tagged as mongodb
+	filter := bson.M{"productName": bson.M{"$elemMatch": bson.M{"$eq": item}}}
+
+	var checkDatabase bool
+
+	if db.col.FindOne(db.ctx, filter).Err() != nil {
+
+		checkDatabase = false
+
+	} else {
+		checkDatabase = true
+	}
 
 	if checkDatabase == true {
 
@@ -58,17 +118,28 @@ func (db *database) create(w http.ResponseWriter, req *http.Request) { // Create
 
 	} else {
 
-		tempParse, err := strconv.ParseFloat(price, 32) // Parses price from URL
+		_, err := strconv.ParseFloat(price, 32) // Parses price from URL
 
 		if err != nil {
-
+			w.WriteHeader(http.StatusNotFound)
 			fmt.Fprintf(w, "Price is invalid\n")
 
 		} else {
 
-			tempFloat32 := float32(tempParse) // Converts type from float64 to float32
+			// Insert one
+			res, err := db.col.InsertOne(db.ctx, &ProductInfo{
+				ID:           primitive.NewObjectID(),
+				ProductName:  item,
+				Tags:         []string{"mongodb"},
+				ProductPrice: price,
+				CreatedAt:    time.Now(),
+			})
 
-			db.storSys[item] = dollars(tempFloat32) // Assigns price to map
+			if err != nil {
+				log.Fatal(err)
+			} else {
+				fmt.Printf("inserted id: %s\n", res.InsertedID.(primitive.ObjectID).Hex())
+			}
 
 			fmt.Fprintf(w, "Entry created -> %s: $%s\n", item, price) // Output confirmation statement
 
@@ -83,9 +154,29 @@ func (db *database) read(w http.ResponseWriter, req *http.Request) { // Read han
 	db.mu.RLock()         // Locks so clients can only read
 	defer db.mu.RUnlock() // Will unlock at end of function
 
-	for item, price := range db.storSys {
-		fmt.Fprintf(w, "%s: %s\n", item, price) // Prints map values
+	var product []ProductInfo
+
+	// filter posts tagged as mongodb
+	filter := bson.M{"tags": bson.M{"$elemMatch": bson.M{"$eq": "mongodb"}}}
+
+	item, err := db.col.Find(db.ctx, filter)
+
+	if err != nil {
+		log.Fatal(err)
 	}
+
+	if err = item.All(db.ctx, &product); err != nil {
+		log.Fatal(err)
+	}
+
+	for _, list := range product {
+		format := fmt.Sprintf("Item: %s\nPrice: %s\nTags: %s\nComments: %v\n Created at: %s\n Updated at: %s\n",
+			list.ProductName, list.ProductPrice, list.Tags, list.Comments, list.CreatedAt, list.UpdatedAt)
+		fmt.Fprintf(w, "%s\n", format)
+	}
+
+	log.Printf("Items: %+v\n", product)
+
 }
 
 func (db *database) update(w http.ResponseWriter, req *http.Request) { // Update handler function
@@ -96,7 +187,18 @@ func (db *database) update(w http.ResponseWriter, req *http.Request) { // Update
 	item := req.URL.Query().Get("item")   // Item assigned from URL
 	price := req.URL.Query().Get("price") // Price assigned from URL
 
-	_, checkDatabase := db.storSys[item] // Checks database for item
+	var checkDatabase bool
+
+	// filter posts tagged as mongodb
+	filter := bson.M{"productName": bson.M{"$elematch": bson.M{"$eq": item}}}
+
+	if db.col.FindOne(db.ctx, filter).Err() != nil {
+
+		checkDatabase = true
+
+	} else {
+		checkDatabase = false
+	}
 
 	if checkDatabase == false {
 
@@ -104,7 +206,7 @@ func (db *database) update(w http.ResponseWriter, req *http.Request) { // Update
 
 	} else {
 
-		tempParse, err := strconv.ParseFloat(price, 32) // Parse price value out of URL
+		_, err := strconv.ParseFloat(price, 32) // Parse price value out of URL
 
 		if err != nil {
 
@@ -112,9 +214,9 @@ func (db *database) update(w http.ResponseWriter, req *http.Request) { // Update
 
 		} else {
 
-			tempFloat32 := float32(tempParse) // Convert float64 to float32
+			update := bson.M{"$set": bson.M{"productPrice": price}, "$currentDate": bson.M{"updated_at": true}}
 
-			db.storSys[item] = dollars(tempFloat32) // Assign value to temp
+			db.col.UpdateOne(db.ctx, filter, update)
 
 			fmt.Fprintf(w, "Entry Updated -> %s: $%s\n", item, price) // Confirmation statement
 
@@ -131,7 +233,18 @@ func (db *database) delete(w http.ResponseWriter, req *http.Request) { // Delete
 
 	item := req.URL.Query().Get("item") // Get item from URL
 
-	_, checkDatabase := db.storSys[item] // Check database for item
+	var checkDatabase bool
+
+	// filter posts tagged as mongodb
+	filter := bson.M{"productName": bson.M{"$elematch": bson.M{"$eq": item}}}
+
+	if db.col.FindOne(db.ctx, filter).Err() != nil {
+
+		checkDatabase = true
+
+	} else {
+		checkDatabase = false
+	}
 
 	if checkDatabase == false {
 
@@ -139,7 +252,7 @@ func (db *database) delete(w http.ResponseWriter, req *http.Request) { // Delete
 
 	} else {
 
-		delete(db.storSys, item)
+		db.col.DeleteOne(db.ctx, filter)
 		fmt.Fprintf(w, "%s has been deleted out of the database\n", item)
 
 	}
@@ -152,10 +265,27 @@ func (db *database) price(w http.ResponseWriter, req *http.Request) {
 	defer db.mu.RUnlock() // Will unlock at end of function
 
 	item := req.URL.Query().Get("item")
-	if price, ok := db.storSys[item]; ok {
-		fmt.Fprintf(w, "%s\n", price)
-	} else {
+
+	var product ProductInfo
+
+	// filter posts tagged as mongodb
+	filter := bson.M{"productPrice": bson.M{"$elemMatch": bson.M{"$eq": item}}}
+
+	var err error
+
+	if db.col.FindOne(db.ctx, filter).Decode(&product); err != nil {
 		w.WriteHeader(http.StatusNotFound) // 404
 		fmt.Fprintf(w, "no such item: %q\n", item)
+		log.Fatal(err)
+	}
+
+	format := fmt.Sprintf("Item: %s at Price: %s\n", product.ProductName, product.ProductPrice)
+
+	fmt.Fprintf(w, "%s\n", format)
+}
+
+func checkError(err error) {
+	if err != nil {
+		log.Fatal(err)
 	}
 }
