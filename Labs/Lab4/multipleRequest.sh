@@ -1,5 +1,9 @@
 #! /bin/sh
 
+curl "http://localhost:8000/create?item=shoes&price=50"
+
+curl "http://localhost:8000/create?item=socks&price=5"
+
 curl "http://localhost:8000/list"
 
 curl "http://localhost:8000/create?item=TV&price=999.99"
