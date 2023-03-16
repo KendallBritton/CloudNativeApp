@@ -22,8 +22,8 @@ const (
 
 type ProductInfo struct {
 	ID           primitive.ObjectID `bson:"_id"`
-	ProductName  string             `bson:"productName"`
-	ProductPrice string             `bson:"productPrice"`
+	ProductName  string             `bson:"product_name"`
+	ProductPrice string             `bson:"product_price"`
 	Tags         []string           `bson:"tags"`
 	Comments     uint64             `bson:"comments"`
 	CreatedAt    time.Time          `bson:"created_at"`
@@ -42,7 +42,7 @@ func main() {
 	db.ctx = context.Background()
 	err = db.client.Connect(db.ctx)
 
-	db.col = db.client.Database("blog").Collection("posts")
+	db.col = db.client.Database("Inventory").Collection("Products")
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/list", db.list)
@@ -69,15 +69,16 @@ func (db *database) list(w http.ResponseWriter, req *http.Request) {
 	var product []ProductInfo
 
 	// filter posts tagged as mongodb
-	filter := bson.M{"tags": bson.M{"$elemMatch": bson.M{"$eq": "mongodb"}}}
+	//filter := bson.M{"product_name": bson.M{"$elemMatch": bson.M{"$eq": "shoes"}}}
+	filter := bson.M{"tags": bson.M{"$eq": "mongodb"}}
 
 	item, err := db.col.Find(db.ctx, filter)
 
-	if err != nil {
+	if err == mongo.ErrNoDocuments {
 		log.Fatal(err)
 	}
 
-	if err = item.All(db.ctx, &product); err != nil {
+	if err = item.All(db.ctx, &product); err == mongo.ErrNoDocuments {
 		log.Fatal(err)
 	}
 
@@ -100,16 +101,22 @@ func (db *database) create(w http.ResponseWriter, req *http.Request) { // Create
 	price := req.URL.Query().Get("price") // Price is assigned from URL
 
 	// filter posts tagged as mongodb
-	filter := bson.M{"productName": bson.M{"$elemMatch": bson.M{"$eq": item}}}
+	filter := bson.M{"product_name": bson.M{"$eq": item}}
 
-	var checkDatabase bool
+	checkDatabase := true
+	var product ProductInfo
 
-	if db.col.FindOne(db.ctx, filter).Err() != nil {
+	err := db.col.FindOne(db.ctx, filter).Decode(&product)
 
-		checkDatabase = false
+	if err != nil {
 
-	} else {
-		checkDatabase = true
+		if err == mongo.ErrNoDocuments {
+			checkDatabase = false
+
+		} else {
+			checkDatabase = true
+		}
+
 	}
 
 	if checkDatabase == true {
@@ -161,11 +168,11 @@ func (db *database) read(w http.ResponseWriter, req *http.Request) { // Read han
 
 	item, err := db.col.Find(db.ctx, filter)
 
-	if err != nil {
+	if err == mongo.ErrNoDocuments {
 		log.Fatal(err)
 	}
 
-	if err = item.All(db.ctx, &product); err != nil {
+	if err = item.All(db.ctx, &product); err == mongo.ErrNoDocuments {
 		log.Fatal(err)
 	}
 
@@ -187,17 +194,23 @@ func (db *database) update(w http.ResponseWriter, req *http.Request) { // Update
 	item := req.URL.Query().Get("item")   // Item assigned from URL
 	price := req.URL.Query().Get("price") // Price assigned from URL
 
-	var checkDatabase bool
-
 	// filter posts tagged as mongodb
-	filter := bson.M{"productName": bson.M{"$elematch": bson.M{"$eq": item}}}
+	filter := bson.M{"product_name": bson.M{"$eq": item}}
 
-	if db.col.FindOne(db.ctx, filter).Err() != nil {
+	checkDatabase := true
+	var product ProductInfo
 
-		checkDatabase = true
+	err := db.col.FindOne(db.ctx, filter).Decode(&product)
 
-	} else {
-		checkDatabase = false
+	if err != nil {
+
+		if err == mongo.ErrNoDocuments {
+			checkDatabase = false
+
+		} else {
+			checkDatabase = true
+		}
+
 	}
 
 	if checkDatabase == false {
@@ -214,7 +227,7 @@ func (db *database) update(w http.ResponseWriter, req *http.Request) { // Update
 
 		} else {
 
-			update := bson.M{"$set": bson.M{"productPrice": price}, "$currentDate": bson.M{"updated_at": true}}
+			update := bson.M{"$set": bson.M{"product_price": price}, "$currentDate": bson.M{"updated_at": time.Now()}}
 
 			db.col.UpdateOne(db.ctx, filter, update)
 
@@ -233,17 +246,23 @@ func (db *database) delete(w http.ResponseWriter, req *http.Request) { // Delete
 
 	item := req.URL.Query().Get("item") // Get item from URL
 
-	var checkDatabase bool
-
 	// filter posts tagged as mongodb
-	filter := bson.M{"productName": bson.M{"$elematch": bson.M{"$eq": item}}}
+	filter := bson.M{"product_name": bson.M{"$eq": item}}
 
-	if db.col.FindOne(db.ctx, filter).Err() != nil {
+	checkDatabase := true
+	var product ProductInfo
 
-		checkDatabase = true
+	err := db.col.FindOne(db.ctx, filter).Decode(&product)
 
-	} else {
-		checkDatabase = false
+	if err != nil {
+
+		if err == mongo.ErrNoDocuments {
+			checkDatabase = false
+
+		} else {
+			checkDatabase = true
+		}
+
 	}
 
 	if checkDatabase == false {
@@ -266,22 +285,38 @@ func (db *database) price(w http.ResponseWriter, req *http.Request) {
 
 	item := req.URL.Query().Get("item")
 
+	// filter posts tagged as mongodb
+	filter := bson.M{"product_name": bson.M{"$eq": item}}
+
+	checkDatabase := true
 	var product ProductInfo
 
-	// filter posts tagged as mongodb
-	filter := bson.M{"productPrice": bson.M{"$elemMatch": bson.M{"$eq": item}}}
+	err := db.col.FindOne(db.ctx, filter).Decode(&product)
 
-	var err error
+	if err != nil {
 
-	if db.col.FindOne(db.ctx, filter).Decode(&product); err != nil {
-		w.WriteHeader(http.StatusNotFound) // 404
-		fmt.Fprintf(w, "no such item: %q\n", item)
-		log.Fatal(err)
+		if err == mongo.ErrNoDocuments {
+			checkDatabase = false
+
+		} else {
+			checkDatabase = true
+		}
+
 	}
 
-	format := fmt.Sprintf("Item: %s at Price: %s\n", product.ProductName, product.ProductPrice)
+	if checkDatabase == false {
 
-	fmt.Fprintf(w, "%s\n", format)
+		w.WriteHeader(http.StatusNotFound) // 404
+		fmt.Fprintf(w, "no such item: %q\n", item)
+
+	} else {
+
+		format := fmt.Sprintf("Item: %v at Price: %v\n", product.ProductName, product.ProductPrice)
+
+		fmt.Fprintf(w, "%s\n", format)
+
+	}
+
 }
 
 func checkError(err error) {
