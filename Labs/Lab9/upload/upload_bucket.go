@@ -22,7 +22,7 @@
    specific language governing permissions and limitations under the License.
 */
 
-package main
+package upload
 
 import (
     "github.com/aws/aws-sdk-go/aws"

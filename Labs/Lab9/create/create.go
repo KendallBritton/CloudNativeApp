@@ -1,10 +1,10 @@
 // snippet-comment:[These are tags for the AWS doc team's sample catalog. Do not remove.]
 // snippet-sourceauthor:[Doug-AWS]
-// snippet-sourcedescription:[Deletes an S3 bucket.]
+// snippet-sourcedescription:[Creates an S3 bucket.]
 // snippet-keyword:[Amazon Simple Storage Service]
 // snippet-keyword:[Amazon S3]
-// snippet-keyword:[DeleteBucket function]
-// snippet-keyword:[WaitUntilBucketNotExists function]
+// snippet-keyword:[CreateBucket function]
+// snippet-keyword:[WaitUntilBucketExists function]
 // snippet-keyword:[Go]
 // snippet-sourcesyntax:[go]
 // snippet-service:[s3]
@@ -22,7 +22,7 @@
    specific language governing permissions and limitations under the License.
 */
 
-package main
+package create
 
 import (
     "github.com/aws/aws-sdk-go/aws"
@@ -32,14 +32,14 @@ import (
     "os"
 )
 
-// Deletes an S3 Bucket in the region configured in the shared config
+// Creates an S3 Bucket in the region configured in the shared config
 // or AWS_REGION environment variable.
 //
 // Usage:
-//    go run s3_delete_bucket BUCKET_NAME
+//    go run s3_create_bucket BUCKET_NAME
 func main() {
     if len(os.Args) != 2 {
-        exitErrorf("bucket name required\nUsage: %s bucket_name", os.Args[0])
+        exitErrorf("Bucket name missing!\nUsage: %s bucket_name", os.Args[0])
     }
 
     bucket := os.Args[1]
@@ -53,26 +53,25 @@ func main() {
     // Create S3 service client
     svc := s3.New(sess)
 
-    // Delete the S3 Bucket
-    // It must be empty or else the call fails
-    _, err = svc.DeleteBucket(&s3.DeleteBucketInput{
+    // Create the S3 Bucket
+    _, err = svc.CreateBucket(&s3.CreateBucketInput{
         Bucket: aws.String(bucket),
     })
     if err != nil {
-        exitErrorf("Unable to delete bucket %q, %v", bucket, err)
+        exitErrorf("Unable to create bucket %q, %v", bucket, err)
     }
 
-    // Wait until bucket is deleted before finishing
-    fmt.Printf("Waiting for bucket %q to be deleted...\n", bucket)
+    // Wait until bucket is created before finishing
+    fmt.Printf("Waiting for bucket %q to be created...\n", bucket)
 
-    err = svc.WaitUntilBucketNotExists(&s3.HeadBucketInput{
+    err = svc.WaitUntilBucketExists(&s3.HeadBucketInput{
         Bucket: aws.String(bucket),
     })
     if err != nil {
-        exitErrorf("Error occurred while waiting for bucket to be deleted, %v", bucket)
+        exitErrorf("Error occurred while waiting for bucket to be created, %v", bucket)
     }
 
-    fmt.Printf("Bucket %q successfully deleted\n", bucket)
+    fmt.Printf("Bucket %q successfully created\n", bucket)
 }
 
 func exitErrorf(msg string, args ...interface{}) {

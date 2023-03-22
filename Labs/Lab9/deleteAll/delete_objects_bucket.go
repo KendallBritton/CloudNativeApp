@@ -1,10 +1,10 @@
 // snippet-comment:[These are tags for the AWS doc team's sample catalog. Do not remove.]
 // snippet-sourceauthor:[Doug-AWS]
-// snippet-sourcedescription:[Creates an S3 bucket.]
+// snippet-sourcedescription:[Deletes all of the items in an S3 bucket.]
 // snippet-keyword:[Amazon Simple Storage Service]
 // snippet-keyword:[Amazon S3]
-// snippet-keyword:[CreateBucket function]
-// snippet-keyword:[WaitUntilBucketExists function]
+// snippet-keyword:[s3manager.NewBatchDeleteWithClient function]
+// snippet-keyword:[s3manager.NewDeleteListIterator function]
 // snippet-keyword:[Go]
 // snippet-sourcesyntax:[go]
 // snippet-service:[s3]
@@ -22,56 +22,50 @@
    specific language governing permissions and limitations under the License.
 */
 
-package main
+package deleteAll
 
 import (
     "github.com/aws/aws-sdk-go/aws"
     "github.com/aws/aws-sdk-go/aws/session"
     "github.com/aws/aws-sdk-go/service/s3"
+    "github.com/aws/aws-sdk-go/service/s3/s3manager"
+    
     "fmt"
     "os"
 )
 
-// Creates an S3 Bucket in the region configured in the shared config
+// Deletes all of the objects in the specified S3 Bucket in the region configured in the shared config
 // or AWS_REGION environment variable.
 //
 // Usage:
-//    go run s3_create_bucket BUCKET_NAME
+//    go run s3_delete_objects BUCKET
 func main() {
     if len(os.Args) != 2 {
-        exitErrorf("Bucket name missing!\nUsage: %s bucket_name", os.Args[0])
+        exitErrorf("Bucket name required\nUsage: %s BUCKET", os.Args[0])
     }
 
     bucket := os.Args[1]
 
     // Initialize a session in us-west-2 that the SDK will use to load
     // credentials from the shared credentials file ~/.aws/credentials.
-    sess, err := session.NewSession(&aws.Config{
+    sess, _ := session.NewSession(&aws.Config{
         Region: aws.String("us-west-1")},
     )
 
     // Create S3 service client
     svc := s3.New(sess)
 
-    // Create the S3 Bucket
-    _, err = svc.CreateBucket(&s3.CreateBucketInput{
+    // Setup BatchDeleteIterator to iterate through a list of objects.
+    iter := s3manager.NewDeleteListIterator(svc, &s3.ListObjectsInput{
         Bucket: aws.String(bucket),
     })
-    if err != nil {
-        exitErrorf("Unable to create bucket %q, %v", bucket, err)
+
+    // Traverse iterator deleting each object
+    if err := s3manager.NewBatchDeleteWithClient(svc).Delete(aws.BackgroundContext(), iter); err != nil {
+        exitErrorf("Unable to delete objects from bucket %q, %v", bucket, err)
     }
 
-    // Wait until bucket is created before finishing
-    fmt.Printf("Waiting for bucket %q to be created...\n", bucket)
-
-    err = svc.WaitUntilBucketExists(&s3.HeadBucketInput{
-        Bucket: aws.String(bucket),
-    })
-    if err != nil {
-        exitErrorf("Error occurred while waiting for bucket to be created, %v", bucket)
-    }
-
-    fmt.Printf("Bucket %q successfully created\n", bucket)
+    fmt.Printf("Deleted object(s) from bucket: %s", bucket)
 }
 
 func exitErrorf(msg string, args ...interface{}) {

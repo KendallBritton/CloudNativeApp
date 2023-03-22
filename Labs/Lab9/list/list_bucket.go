@@ -21,7 +21,7 @@
    specific language governing permissions and limitations under the License.
 */
 
-package main
+package list
 
 import (
     "github.com/aws/aws-sdk-go/aws"
