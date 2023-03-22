@@ -1,16 +1,15 @@
 // snippet-comment:[These are tags for the AWS doc team's sample catalog. Do not remove.]
 // snippet-sourceauthor:[Doug-AWS]
-// snippet-sourcedescription:[Creates an S3 bucket.]
+// snippet-sourcedescription:[Lists the items in an S3 bucket.]
 // snippet-keyword:[Amazon Simple Storage Service]
 // snippet-keyword:[Amazon S3]
-// snippet-keyword:[CreateBucket function]
-// snippet-keyword:[WaitUntilBucketExists function]
+// snippet-keyword:[ListObjectsV2 function]
 // snippet-keyword:[Go]
 // snippet-sourcesyntax:[go]
 // snippet-service:[s3]
 // snippet-keyword:[Code Sample]
 // snippet-sourcetype:[full-example]
-// snippet-sourcedate:[2018-03-16]
+// snippet-sourcedate:[2019-04-06]
 /*
    Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
    This file is licensed under the Apache License, Version 2.0 (the "License").
@@ -32,14 +31,14 @@ import (
     "os"
 )
 
-// Creates an S3 Bucket in the region configured in the shared config
-// or AWS_REGION environment variable.
+// Lists the items in the specified S3 Bucket
 //
 // Usage:
-//    go run s3_create_bucket BUCKET_NAME
+//    go run s3_list_objects.go BUCKET_NAME
 func main() {
     if len(os.Args) != 2 {
-        exitErrorf("Bucket name missing!\nUsage: %s bucket_name", os.Args[0])
+        exitErrorf("Bucket name required\nUsage: %s bucket_name",
+            os.Args[0])
     }
 
     bucket := os.Args[1]
@@ -53,25 +52,22 @@ func main() {
     // Create S3 service client
     svc := s3.New(sess)
 
-    // Create the S3 Bucket
-    _, err = svc.CreateBucket(&s3.CreateBucketInput{
-        Bucket: aws.String(bucket),
-    })
+    // Get the list of items
+    resp, err := svc.ListObjectsV2(&s3.ListObjectsV2Input{Bucket: aws.String(bucket)})
     if err != nil {
-        exitErrorf("Unable to create bucket %q, %v", bucket, err)
+        exitErrorf("Unable to list items in bucket %q, %v", bucket, err)
     }
 
-    // Wait until bucket is created before finishing
-    fmt.Printf("Waiting for bucket %q to be created...\n", bucket)
-
-    err = svc.WaitUntilBucketExists(&s3.HeadBucketInput{
-        Bucket: aws.String(bucket),
-    })
-    if err != nil {
-        exitErrorf("Error occurred while waiting for bucket to be created, %v", bucket)
+    for _, item := range resp.Contents {
+        fmt.Println("Name:         ", *item.Key)
+        fmt.Println("Last modified:", *item.LastModified)
+        fmt.Println("Size:         ", *item.Size)
+        fmt.Println("Storage class:", *item.StorageClass)
+        fmt.Println("")
     }
 
-    fmt.Printf("Bucket %q successfully created\n", bucket)
+    fmt.Println("Found", len(resp.Contents), "items in bucket", bucket)
+    fmt.Println("")
 }
 
 func exitErrorf(msg string, args ...interface{}) {
