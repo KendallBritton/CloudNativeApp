@@ -22,7 +22,7 @@
    specific language governing permissions and limitations under the License.
 */
 
-package upload
+package main
 
 import (
     "github.com/aws/aws-sdk-go/aws"
@@ -56,7 +56,7 @@ func main() {
     // Initialize a session in us-west-2 that the SDK will use to load
     // credentials from the shared credentials file ~/.aws/credentials.
     sess, err := session.NewSession(&aws.Config{
-        Region: aws.String("us-west-1")},
+        Region: aws.String("us-east-1")},
     )
 
     // Setup the S3 Upload Manager. Also see the SDK doc for the Upload Manager
