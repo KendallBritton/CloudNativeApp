@@ -5,20 +5,23 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 
 	"google.golang.org/api/googleapi/transport"
 	"google.golang.org/api/youtube/v3"
 )
 
 var (
-	query      = flag.String("query", "Google", "Search term")
+	query      = flag.String("query", "Google", "Search term") // Parameters to change
 	maxResults = flag.Int64("max-results", 25, "Max YouTube results")
 )
 
-const developerKey = "YOUR DEVELOPER KEY"
+var developerKey string
 
 func main() {
+	searchList := []string{"id", "snippet"}
 	flag.Parse()
+	developerKey = os.Getenv("youtubeAPIKey")
 
 	client := &http.Client{
 		Transport: &transport.APIKey{Key: developerKey},
@@ -30,11 +33,11 @@ func main() {
 	}
 
 	// Make the API call to YouTube.
-	call := service.Search.List("id,snippet").
+	call := service.Search.List(searchList).
 		Q(*query).
 		MaxResults(*maxResults)
 	response, err := call.Do()
-	handleError(err, "")
+	//handleError(err, "")
 
 	// Group video, channel, and playlist results in separate lists.
 	videos := make(map[string]string)
