@@ -12,6 +12,10 @@
         @import url("https://unpkg.com/open-props");
         @import url("https://unpkg.com/open-props/normalize.min.css");
 
+        body {
+            background-color: aqua;
+        }
+
         table {
             margin: 0 auto;
             font-size: large;
@@ -43,12 +47,16 @@
             font-weight: lighter;
         }
 
+        .gameplay-videos{
+            background-color: transparent;
+        }
+
         .media-scroller{
             --_spacer: var(--size-3);
             display: grid;
             gap: var(--_spacer);
             grid-auto-flow: column;
-            grid-auto-columns: 45%;
+            grid-auto-columns: 21%;
 
             padding: 0 var(--_spacer) var(--_spacer);
 
@@ -62,6 +70,7 @@
             gap: var(--_spacer);
             padding: var(--_spacer);
             background: var(--surface-2);
+            background-color: darkgray;
             border-radius: var(--radius-2);
             box-shadow: var(--shadow-2);
         }
@@ -80,6 +89,8 @@
         .snaps-inline > * {
             scroll-snap-align: start;
         }
+
+
     </style>
 </head>
 
@@ -96,7 +107,7 @@
         
     </section>
 
-    <section>
+    <section class = "gameplay-videos">
         <h2>Gameplay Videos:</h2>
         <div class = "media-scroller snaps-inline">
             <div class = media-element">
