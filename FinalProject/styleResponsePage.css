@@ -10,7 +10,6 @@
 */
 
 
-
 .media-scroller{
     --_spacer: var(--size-3);
     display: grid;
