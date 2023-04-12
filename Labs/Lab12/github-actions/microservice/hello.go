@@ -1,6 +1,6 @@
 // Hello world microservice - server.go
 package microservice
-4
+
 import (
 "fmt"
 "net/http"
