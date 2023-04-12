@@ -10,7 +10,7 @@ var (
 port = "8000"
 )
 // Unit Tests
-5
+
 func TestHandler(t *testing.T) {
 expected := []byte("Hello World!\n")
 req, err := http.NewRequest("GET", buildUrl("/"), nil)
