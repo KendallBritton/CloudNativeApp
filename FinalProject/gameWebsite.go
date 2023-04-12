@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"html/template"
 	"log"
 	"net/http"
 	"os"
@@ -11,14 +12,22 @@ import (
 	"google.golang.org/api/youtube/v3"
 )
 
+var tpl *template.Template
+
 var (
 	query      = flag.String("query", "Google", "Search term") // Parameters to change
-	maxResults = flag.Int64("max-results", 25, "Max YouTube results")
+	maxResults = flag.Int64("max-results", 5, "Max YouTube results")
 )
 
 var developerKey string
 
 func main() {
+	tpl, _ = tpl.ParseGlob("templates/responsePage.html")
+	http.HandleFunc("/test", youtubeAPI)
+	http.ListenAndServe(":8000", nil)
+}
+
+func youtubeAPI(w http.ResponseWriter, r *http.Request){
 	searchList := []string{"id", "snippet"}
 	flag.Parse()
 	developerKey = os.Getenv("youtubeAPIKey")
@@ -59,6 +68,8 @@ func main() {
 	printIDs("Videos", videos)
 	printIDs("Channels", channels)
 	printIDs("Playlists", playlists)
+
+	tpl.ExecuteTemplate(w, "responsePage.html", response)
 }
 
 // Print the ID and title of each result in a list as well as a name that
