@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"html/template"
 	"log"
 	"net/http"
 	"os"
@@ -12,26 +11,16 @@ import (
 	"google.golang.org/api/youtube/v3"
 )
 
-var tpl *template.Template
-
 var (
-	query      = flag.String("query", "Google", "Search term") // Parameters to change
-	maxResults = flag.Int64("max-results", 5, "Max YouTube results")
+	query      = flag.String("query", "Google", "Search term")
+	maxResults = flag.Int64("max-results", 25, "Max YouTube results")
 )
 
 var developerKey string
 
 func main() {
-	tpl, _ = tpl.ParseGlob("templates/responsePage.html")
-	http.HandleFunc("/test", youtubeAPI)
-	http.ListenAndServe(":8000", nil)
-}
-
-func youtubeAPI(w http.ResponseWriter, r *http.Request){
-	searchList := []string{"id", "snippet"}
 	flag.Parse()
 	developerKey = os.Getenv("youtubeAPIKey")
-
 	client := &http.Client{
 		Transport: &transport.APIKey{Key: developerKey},
 	}
@@ -42,11 +31,12 @@ func youtubeAPI(w http.ResponseWriter, r *http.Request){
 	}
 
 	// Make the API call to YouTube.
-	call := service.Search.List(searchList).
+	Test := []string{"id", "snippet"}
+	call := service.Search.List(Test).
 		Q(*query).
 		MaxResults(*maxResults)
 	response, err := call.Do()
-	//handleError(err, "")
+	// handleError(err, "")
 
 	// Group video, channel, and playlist results in separate lists.
 	videos := make(map[string]string)
@@ -68,8 +58,6 @@ func youtubeAPI(w http.ResponseWriter, r *http.Request){
 	printIDs("Videos", videos)
 	printIDs("Channels", channels)
 	printIDs("Playlists", playlists)
-
-	tpl.ExecuteTemplate(w, "responsePage.html", response)
 }
 
 // Print the ID and title of each result in a list as well as a name that

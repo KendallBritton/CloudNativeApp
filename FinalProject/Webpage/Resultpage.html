@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang = "en">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="Result Page" content="width=device-width, initial-scale=1.0">
+        <title>Game Search Response Details</title>
+        <link rel="stylesheet" href="css_sheets/resultPage.css">
+    </head>
+
+    <body onload="webpage_load()">
+
+        <div class="hero">
+
+            <div class="header">
+
+                <form action="./Homepage.html">
+                    <button onclick="action.webpage_load" type="submit"><img src="WebsiteDesignSources/house.png"></button>
+                    <h1>All Inclusive Game Info Website</h1>
+                    <div class="search">
+                        <form>
+                            <input id="searchbar" type="text" autocomplete="off" placeholder="Search Video Game" name="search">
+                            <button id="submitbutton" onclick="search_game()" type="button"><img src="WebsiteDesignSources/search.png"></button> 
+                        </form>
+                    </div>
+
+                </form>
+                
+            </div>
+
+
+
+            
+            <img class="back-video" src="WebsiteDesignSources/mario-pixel-art.gif">
+
+            <div align="center" class="text-style-1" id="test"></div>
+
+            <main style="background: rgba(255, 255, 255, .8); border: 2px solid #fc6c85;" class="container">
+
+                <div align="center" class="text-style-1 container" id="name"></div>
+                <div align="center" style="border: 2px solid black; width: 350px; height: 350px;" class="container" id="boxart"></div>
+                <br></br>
+                <div align="justify" class="container text-style-3" id="storyline"></div>
+
+                <br></br>
+            </main>
+            
+            <div class="section-title" style="background: rgba(0, 0, 0, .5); border: 2px solid #fc6c85; backdrop-filter: blur(4px) saturate(180%);">
+                <div align="left" class="text-style-2">Gameplay Videos:</div>
+                <div class = "media-scroller snaps-inline">
+                    <div class = "media-element" id="gameplay-1">                   
+                    </div>
+        
+                    <div class = "media-element" id="gameplay-2">
+                    </div>
+        
+                    <div class = "media-element" id="gameplay-3">
+                    </div>
+        
+                    <div class = "media-element" id="gameplay-4">
+                    </div>
+        
+                    <div class = "media-element" id="gameplay-5">
+                    </div>
+                    
+                    <div class = "media-element" id="gameplay-6">
+                    </div>
+
+                    <div class = "media-element" id="gameplay-7">
+                    </div>
+
+                    <div class = "media-element" id="gameplay-8">
+                    </div>
+
+                    <div class = "media-element" id="gameplay-9">
+                    </div>
+
+                    <div class = "media-element" id="gameplay-10">
+                    </div>
+                </div>
+
+            </div>
+
+
+            <script src="./searchJavascript.js"></script>
+            <script>            
+                var input = document.getElementById("searchbar");
+                input.addEventListener("keypress", function(event){
+                    if (event.key === "Enter"){
+                        event.preventDefault();
+                        document.getElementById("submitbutton").click();
+                    }
+                });
+            </script>
+        </div>
+    </body>
+</html>

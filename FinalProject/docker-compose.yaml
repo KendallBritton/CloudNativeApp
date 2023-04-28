@@ -1,0 +1,9 @@
+services:
+  web:
+    build: .
+    environment:
+      - twitchAPIID=${twitchAPIID}
+      - twitchAPIAccess=${twitchAPIAccess}
+      - youtubeAPIKey=${youtubeAPIKey}
+    ports:
+      - "8002:8002"

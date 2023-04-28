@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webserver-deployment
+spec:
+  selector:
+    matchLabels:
+      app: webserver
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: webserver
+    spec:
+      containers:
+        - name: webserver
+          image: webserver
+          env:
+          - name: twitchAPIID
+            value: TwitchAPIID # Edit This
+          - name: twitchAPIAccess
+            value: TwitchAccessKey # Edit This
+
+          - name: youtubeAPIKey
+            value: YouTubeKey # Edit This
+          ports:
+            - containerPort: 8002
+          imagePullPolicy: IfNotPresent # Might need to remove this
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: webserver-service
+spec:
+  type: NodePort
+  selector:
+    app: webserver
+  ports:
+    - port: 8002
+      nodePort: 30007
